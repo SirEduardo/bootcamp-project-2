@@ -4,30 +4,14 @@ import products from "./products.js"
 const SELLERS = []
 let SELLER = ""
 
-const filtrar = () =>{
-  const filtrado = []
-  
-  for (const product of products){
-    if(SELLER === product.seller){
-      filtrado.push(product)
-    }
-  }
-  printProducts(filtrado)
-}
-
-const fillSellers = (products) =>{
-  SELLERS.splice(0)
-  for(const product of products){
-    if(!SELLERS.includes(product.seller)){
-      SELLERS.push(product.seller)
-    }
-  }
-}
-fillSellers(products)
-
 const createSelect = () =>{
   const filtros = document.querySelector(".filter")
   const selectModel = document.createElement("select")
+
+  const defaultOption = document.createElement("option")
+  defaultOption.textContent = "Vendedores"
+  defaultOption.selected = true
+  selectModel.appendChild(defaultOption)
 
   for( const seller of SELLERS){
     const option = document.createElement("option")
@@ -42,11 +26,46 @@ const createSelect = () =>{
   selectModel.addEventListener("change", (e) =>{
     SELLER = e.target.value
     filtrar()
-    inputPrice.value = ""
     errorMessage.textContent = ""
   })
   
 }
+
+const filtrar = () =>{
+  let filtrado = products
+  const price = parseFloat(inputPrice.value)
+
+  if(SELLER){
+    filtrado = filtrado.filter(product => product.seller === SELLER)
+  }
+
+  if(!isNaN(price)){
+    filtrado = filtrado.filter(product => product.price < price)
+  }
+    printProducts(filtrado)
+    
+  if (filtrado.length > 0) {
+      errorMessage.textContent = ""
+  }else{
+    container.classList.add("container-error")
+    nav.classList.remove("nav")
+    nav.classList.add("nav-error")
+    errorMessage.textContent = "No hay productos inferiores al precio seleccionado"
+  }
+
+}
+
+const fillSellers = (products) =>{
+  SELLERS.splice(0)
+  for(const product of products){
+    if(!SELLERS.includes(product.seller)){
+      SELLERS.push(product.seller)
+    }
+  }
+}
+fillSellers(products)
+
+
 
 const printProducts = (products) =>{
   const divProducts = document.querySelector(".productos")
@@ -102,26 +121,18 @@ errorMessage.classList.add("error-message")
 container.appendChild(errorMessage)
 
 searchBtn.addEventListener("click", () =>{
-  const price = parseFloat(inputPrice.value)
-  if(!isNaN(price)){
-    const filteredProducts = products.filter(product => product.price < price)
-    printProducts(filteredProducts)
-    if (filteredProducts.length > 0) {
-      errorMessage.textContent = ""
-  }else{
-    container.classList.add("container-error")
-    nav.classList.remove("nav")
-    nav.classList.add("nav-error")
-    errorMessage.textContent = "No hay productos inferiores al precio seleccionado"
-  }
-}
-
+  filtrar()
+})
+inputPrice.addEventListener("input", () =>{
+  filtrar()
 })
 
 
 resetBtn.addEventListener("click", () =>{
   printProducts(products)
   inputPrice.value = ""
+  SELLER = ""
+  document.querySelector("select").selectedIndex = 0
   errorMessage.textContent = ""
 })
 
